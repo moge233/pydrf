@@ -1,7 +1,6 @@
 #! python3
 
 
-import csv
 from enum import Enum
 from dataclasses import dataclass
 
@@ -749,24 +748,3 @@ class StarterPerformanceData:
             try_get_int(row, StarterPerformanceDataIndex.JOCKEY_KEY_INDEX),
             try_get_int(row, StarterPerformanceDataIndex.TRAINER_KEY_INDEX)
         )
-
-
-if __name__ == '__main__':
-
-    with open("C:\\Users\\mathe\\OneDrive\\Documents\\horses\\results\\2025\\2507\\CNL20250709.chart") as f:
-        reader = csv.reader(f)
-        for line in reader:
-            if RecordType.HEADER == line[0]:
-                print(Header.create(line))
-            elif RecordType.RACE == line[0]:
-                print(RaceData.create(line))
-            elif RecordType.STARTER == line[0]:
-                print(StarterPerformanceData.create(line))
-            elif RecordType.EXOTIC_WAGERING == line[0]:
-                print(ExoticWageringData.create(line))
-            elif RecordType.ATTENDANCE == line[0]:
-                print(AttendanceAndHandleData.create(line))
-            elif RecordType.COMMENT == line[0]:
-                pass
-            elif RecordType.FOOTNOTE == line[0]:
-                pass
