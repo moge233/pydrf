@@ -1,8 +1,9 @@
 #! python3
 
 
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from math import trunc
 
 
 class RecordType(Enum):
@@ -378,8 +379,8 @@ def final_time_to_seconds(final_time: float) -> float:
 
 
 def fraction_to_seconds(fraction: float) -> float:
-    minutes: float = (fraction / 100) // 60
-    return minutes * 60 + fraction - minutes * 100
+    minutes: float = trunc(fraction / 6000)
+    return minutes * 60 + fraction / 100 - minutes * 100
 
 
 @dataclass
