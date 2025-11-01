@@ -372,6 +372,16 @@ def try_get_float(row: list[str], index: Index) -> float:
         return float('nan')
 
 
+def final_time_to_seconds(final_time: float) -> float:
+    minutes: float = final_time // 60
+    return minutes * 60 + final_time - minutes * 100
+
+
+def fraction_to_seconds(fraction: float) -> float:
+    minutes: float = fraction // 60
+    return minutes * 60 + fraction - minutes * 100
+
+
 @dataclass
 class Header:
     country_code: str
@@ -510,12 +520,12 @@ class RaceData:
             try_get_int(row, RaceDataIndex.WIND_SPEED_INDEX),
             try_get_str(row, RaceDataIndex.WIND_DIRECTION_INDEX),
             try_get_int(row, RaceDataIndex.RACE_TEMPERATURE_INDEX),
-            try_get_float(row, RaceDataIndex.FINAL_TIME_INDEX),
-            try_get_float(row, RaceDataIndex.FRACTION1_INDEX),
-            try_get_float(row, RaceDataIndex.FRACTION2_INDEX),
-            try_get_float(row, RaceDataIndex.FRACTION3_INDEX),
-            try_get_float(row, RaceDataIndex.FRACTION4_INDEX),
-            try_get_float(row, RaceDataIndex.FRACTION5_INDEX),
+            final_time_to_seconds(try_get_float(row, RaceDataIndex.FINAL_TIME_INDEX)),
+            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION1_INDEX)),
+            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION2_INDEX)),
+            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION3_INDEX)),
+            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION4_INDEX)),
+            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION5_INDEX)),
             try_get_float(row, RaceDataIndex.INDIVIDUAL_TIME_INDEX),
             try_get_str(row, RaceDataIndex.TIMER_TYPE_INDEX),
             try_get_int(row, RaceDataIndex.WPS_POOL_INDEX),
