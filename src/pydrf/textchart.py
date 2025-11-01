@@ -378,7 +378,7 @@ def final_time_to_seconds(final_time: float) -> float:
 
 
 def fraction_to_seconds(fraction: float) -> float:
-    minutes: float = fraction // 60
+    minutes: float = (fraction / 100) // 60
     return minutes * 60 + fraction - minutes * 100
 
 
