@@ -375,12 +375,12 @@ def try_get_float(row: list[str], index: Index) -> float:
 
 def final_time_to_seconds(final_time: float) -> float:
     minutes: float = trunc(final_time / 100)
-    return minutes * 60 + final_time - minutes * 100
+    return round(minutes * 60 + final_time - minutes * 100, 2)
 
 
 def fraction_to_seconds(fraction: float) -> float:
     minutes: float = trunc(fraction / 10000)
-    return minutes * 60 + fraction / 100 - minutes * 100
+    return round(minutes * 60 + fraction / 100 - minutes * 100, 2)
 
 
 @dataclass
