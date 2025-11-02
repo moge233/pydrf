@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydrf"
-version = "0.2.5"
+version = "0.2.6"
 description = "Utils for DRF text charts."
 authors = [
     { name = "Matt" }
