@@ -374,7 +374,7 @@ def try_get_float(row: list[str], index: Index) -> float:
 
 
 def final_time_to_seconds(final_time: float) -> float:
-    minutes: float = trunc(final_time / 60)
+    minutes: float = trunc(final_time / 100)
     return minutes * 60 + final_time - minutes * 100
 
 
