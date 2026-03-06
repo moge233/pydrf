@@ -11,6 +11,18 @@ class Race:
         self.starters: list[Starter] = starters
         self.wagering: list[ExoticWageringData] = wagering
 
+    def __str__(self):
+        ret = ''
+        for k, v in vars(self).items():
+            ret += f'{k}={v}, '
+        return f'Race({ret[:-2]})'
+
+    def __repr__(self):
+        ret = ''
+        for k, v in vars(self).items():
+            ret += f'{k}={v}, '
+        return f'Race({ret[:-2]})'
+
     def add_starter(self, starter: Starter) -> None:
         self.starters.append(starter)
 
