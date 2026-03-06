@@ -3,9 +3,9 @@
 
 import csv
 
-from src.pydrf.textchart import ExoticWageringData, Header, RaceData, RecordType, StarterPerformanceData
-from src.pydrf.race import Race
-from src.pydrf.starter import Starter
+from .textchart import ExoticWageringData, Header, RaceData, RecordType, StarterPerformanceData
+from .race import Race
+from .starter import Starter
 
 
 class Chart:

@@ -1,8 +1,8 @@
 #! python3
 
 
-from src.pydrf.textchart import ExoticWageringData, RaceData
-from src.pydrf.starter import Starter
+from .textchart import ExoticWageringData, RaceData
+from .starter import Starter
 
 
 class Race:

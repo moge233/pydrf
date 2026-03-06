@@ -1,7 +1,7 @@
 #! python3
 
 
-from src.pydrf.textchart import StarterPerformanceData
+from .textchart import StarterPerformanceData
 
 
 class Starter:
