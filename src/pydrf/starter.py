@@ -10,18 +10,18 @@ class Starter:
 
         # Make the data more human readable/usable
         self.data.odds /= 100
-        self.length_ahead_at_poc1 /= 100
-        self.length_ahead_at_poc2 /= 100
-        self.length_ahead_at_poc3 /= 100
-        self.length_ahead_at_poc4 /= 100
-        self.length_ahead_at_poc5 /= 100
-        self.length_ahead_at_finish /= 100
-        self.length_behind_at_poc1 /= 100
-        self.length_behind_at_poc2 /= 100
-        self.length_behind_at_poc3 /= 100
-        self.length_behind_at_poc4 /= 100
-        self.length_behind_at_poc5 /= 100
-        self.length_behind_at_finish /= 100
+        self.data.length_ahead_at_poc1 /= 100
+        self.data.length_ahead_at_poc2 /= 100
+        self.data.length_ahead_at_poc3 /= 100
+        self.data.length_ahead_at_poc4 /= 100
+        self.data.length_ahead_at_poc5 /= 100
+        self.data.length_ahead_at_finish /= 100
+        self.data.length_behind_at_poc1 /= 100
+        self.data.length_behind_at_poc2 /= 100
+        self.data.length_behind_at_poc3 /= 100
+        self.data.length_behind_at_poc4 /= 100
+        self.data.length_behind_at_poc5 /= 100
+        self.data.length_behind_at_finish /= 100
 
     def __str__(self):
         ret = ''
