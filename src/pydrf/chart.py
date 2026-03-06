@@ -4,8 +4,10 @@
 import csv
 
 from .textchart import ExoticWageringData, Header, RaceData, RecordType, StarterPerformanceData
+from .jockey import Jockey
 from .race import Race
 from .starter import Starter
+from .trainer import Trainer
 
 
 class Chart:
@@ -41,7 +43,20 @@ class Chart:
                         races.append(Race(race_data, [], []))
                     elif line[0] == RecordType.STARTER:
                         starter_data: StarterPerformanceData = StarterPerformanceData.create(line)
-                        races[starter_data.race_number - 1].add_starter(Starter(starter_data))
+                        jockey: Jockey = Jockey(
+                            starter_data.jockey_last_name,
+                            starter_data.jockey_first_name,
+                            starter_data.jockey_middle_name,
+                            starter_data.apprentice_type,
+                            starter_data.jockey_key
+                        )
+                        trainer: Trainer = Trainer(
+                            starter_data.trainer_last_name,
+                            starter_data.trainer_first_name,
+                            starter_data.trainer_middle_name,
+                            starter_data.trainer_key
+                        )
+                        races[starter_data.race_number - 1].add_starter(Starter(starter_data, jockey, trainer))
                     elif line[0] == RecordType.EXOTIC_WAGERING:
                         exotic_wagering_data.append(ExoticWageringData.create(line))
                         wager_data: ExoticWageringData = ExoticWageringData.create(line)
