@@ -759,3 +759,29 @@ class StarterPerformanceData:
             try_get_int(row, StarterPerformanceDataIndex.JOCKEY_KEY_INDEX),
             try_get_int(row, StarterPerformanceDataIndex.TRAINER_KEY_INDEX)
         )
+
+
+class TextChart:
+    def __init__(self, header: Header, race_data: list[RaceData], starters: list[StarterPerformanceData]):
+        self.header: Header = header
+        self.race_data: list[RaceData] = race_data
+        self.starters_performance_data: list[StarterPerformanceData] = starters
+
+    def __str__(self):
+        ret = ''
+        for k, v in vars(self).items():
+            ret += f'{k}={v}, '
+        return f'TextChart({ret[:-2]})'
+
+    def __repr__(self):
+        ret = ''
+        for k, v in vars(self).items():
+            ret += f'{k}={v}, '
+        return f'TextChart({ret[:-2]})'
+
+    def get_winner(self, race_number: int) -> StarterPerformanceData:
+        for starter in self.starters_performance_data:
+            if starter.race_number == race_number and starter.original_finish == 1 and starter.dead_heat_flag == 'N':
+                winner = starter
+                break
+        return winner
