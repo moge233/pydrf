@@ -11,9 +11,9 @@ from .trainer import Trainer
 
 
 class Chart:
-    def __init__(self, header: Header, races: list[Race]):
+    def __init__(self, header: Header, races: list[Race | None]):
         self.header: Header = header
-        self.races: list[Race] = races
+        self.races: list[Race | None] = races
 
     def __str__(self):
         ret = ''
@@ -29,7 +29,7 @@ class Chart:
 
     @staticmethod
     def parse_chart(path: str) -> 'Chart | None':
-        races: list[Race] = []
+        races: list[Race | None] = []
         exotic_wagering_data: list[ExoticWageringData] = []
         try:
             with open(path) as chart_file:
@@ -40,7 +40,11 @@ class Chart:
                         header = Header.create(line)
                     elif line[0] == RecordType.RACE:
                         race_data: RaceData = RaceData.create(line)
-                        races.append(Race(race_data, [], []))
+                        if (race_data.race_number - 1) == len(races):
+                            races.append(Race(race_data, [], []))
+                        else:
+                            races.append(None)
+                            races.append(Race(race_data, [], []))
                     elif line[0] == RecordType.STARTER:
                         starter_data: StarterPerformanceData = StarterPerformanceData.create(line)
                         jockey: Jockey = Jockey(
@@ -56,11 +60,15 @@ class Chart:
                             starter_data.trainer_middle_name,
                             starter_data.trainer_key
                         )
-                        races[starter_data.race_number - 1].add_starter(Starter(starter_data, jockey, trainer))
+                        race: Race | None = races[starter_data.race_number - 1]
+                        if race:
+                            race.add_starter(Starter(starter_data, jockey, trainer))
                     elif line[0] == RecordType.EXOTIC_WAGERING:
                         exotic_wagering_data.append(ExoticWageringData.create(line))
                         wager_data: ExoticWageringData = ExoticWageringData.create(line)
-                        races[starter_data.race_number - 1].add_wager(wager_data)
+                        race: Race | None = races[starter_data.race_number - 1]
+                        if race:
+                            race.add_wager(wager_data)
                     elif line[0] == RecordType.ATTENDANCE:
                         pass
                     elif line[0] == RecordType.COMMENT:
