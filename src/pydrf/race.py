@@ -17,7 +17,7 @@ class Race:
         self.minimum_claiming_price: int = data.minimum_claiming_price
         self.maximum_claiming_price: int = data.maximum_claiming_price
         self.about_distance_indicator: str = data.about_distance_indicator
-        self.distance: float = data.distance / 10.0
+        self.distance: float = data.distance / 100.0
         self.distance_unit: str = data.distance_unit
         self.surface: str = data.surface
         self.course_type: str = data.course_type
