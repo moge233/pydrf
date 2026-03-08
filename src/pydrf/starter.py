@@ -8,6 +8,7 @@ from .trainer import Trainer
 
 class Starter:
     def __init__(self, data: StarterPerformanceData, jockey: Jockey, trainer: Trainer):
+        self.name: str = data.horse_name
         self.foaling_date: str = data.horse_foaling_date
         self.sex: str = data.sex_of_horse
         self.color: str = data.color
