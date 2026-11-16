@@ -28,55 +28,51 @@ class Chart:
         return f'Chart({ret[:-2]})'
 
     @staticmethod
-    def parse_chart(path: str) -> 'Chart | None':
+    def parse_chart(path: str) -> 'Chart':
         races: list[Race | None] = []
         exotic_wagering_data: list[ExoticWageringData] = []
-        try:
-            with open(path) as chart_file:
-                header: Header | None
-                reader = csv.reader(chart_file.readlines())
-                for line in reader:
-                    if line[0] == RecordType.HEADER:
-                        header = Header.create(line)
-                    elif line[0] == RecordType.RACE:
-                        race_data: RaceData = RaceData.create(line)
-                        while len(races) < race_data.race_number - 1:
-                            races.append(None)
-                        races.append(Race(race_data, [], []))
-                    elif line[0] == RecordType.STARTER:
-                        starter_data: StarterPerformanceData = StarterPerformanceData.create(line)
-                        jockey: Jockey = Jockey(
-                            starter_data.jockey_last_name,
-                            starter_data.jockey_first_name,
-                            starter_data.jockey_middle_name,
-                            starter_data.apprentice_type,
-                            starter_data.jockey_key
-                        )
-                        trainer: Trainer = Trainer(
-                            starter_data.trainer_last_name,
-                            starter_data.trainer_first_name,
-                            starter_data.trainer_middle_name,
-                            starter_data.trainer_key
-                        )
-                        race: Race | None = races[starter_data.race_number - 1]
-                        if race:
-                            race.add_starter(Starter(starter_data, jockey, trainer))
-                    elif line[0] == RecordType.EXOTIC_WAGERING:
-                        wager_data: ExoticWageringData = ExoticWageringData.create(line)
-                        exotic_wagering_data.append(wager_data)
-                        race: Race | None = races[wager_data.race_number - 1]
-                        if race:
-                            race.add_wager(wager_data)
-                    elif line[0] == RecordType.ATTENDANCE:
-                        pass
-                    elif line[0] == RecordType.COMMENT:
-                        pass
-                    elif line[0] == RecordType.FOOTNOTE:
-                        pass
-                return Chart(
-                    header,
-                    races,
-                )
-        except FileNotFoundError as e:
-            print(f'[{e}]: could not find {path}')
-            return None
+        with open(path) as chart_file:
+            header: Header | None
+            reader = csv.reader(chart_file.readlines())
+            for line in reader:
+                if line[0] == RecordType.HEADER:
+                    header = Header.create(line)
+                elif line[0] == RecordType.RACE:
+                    race_data: RaceData = RaceData.create(line)
+                    while len(races) < race_data.race_number - 1:
+                        races.append(None)
+                    races.append(Race(race_data, [], []))
+                elif line[0] == RecordType.STARTER:
+                    starter_data: StarterPerformanceData = StarterPerformanceData.create(line)
+                    jockey: Jockey = Jockey(
+                        starter_data.jockey_last_name,
+                        starter_data.jockey_first_name,
+                        starter_data.jockey_middle_name,
+                        starter_data.apprentice_type,
+                        starter_data.jockey_key
+                    )
+                    trainer: Trainer = Trainer(
+                        starter_data.trainer_last_name,
+                        starter_data.trainer_first_name,
+                        starter_data.trainer_middle_name,
+                        starter_data.trainer_key
+                    )
+                    race: Race | None = races[starter_data.race_number - 1]
+                    if race:
+                        race.add_starter(Starter(starter_data, jockey, trainer))
+                elif line[0] == RecordType.EXOTIC_WAGERING:
+                    wager_data: ExoticWageringData = ExoticWageringData.create(line)
+                    exotic_wagering_data.append(wager_data)
+                    race: Race | None = races[wager_data.race_number - 1]
+                    if race:
+                        race.add_wager(wager_data)
+                elif line[0] == RecordType.ATTENDANCE:
+                    pass
+                elif line[0] == RecordType.COMMENT:
+                    pass
+                elif line[0] == RecordType.FOOTNOTE:
+                    pass
+            return Chart(
+                header,
+                races,
+            )
