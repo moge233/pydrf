@@ -22,6 +22,9 @@ class RecordType(Enum):
             return self.value == other
         return NotImplemented
 
+    def __hash__(self) -> int:
+        return hash(self.value)
+
 
 class BreedIndicator(Enum):
     THOROUGHBRED = 'TB'
@@ -37,6 +40,9 @@ class BreedIndicator(Enum):
             return self.value == other
         return NotImplemented
 
+    def __hash__(self) -> int:
+        return hash(self.value)
+
 
 class RestrictionCodes(Enum):
     AUCTION = 'A'
@@ -49,6 +55,9 @@ class RestrictionCodes(Enum):
         elif other.__class__ is str:
             return self.value == other
         return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(self.value)
 
 
 class SexRestrictions(Enum):
@@ -69,6 +78,9 @@ class SexRestrictions(Enum):
             return self.value == other
         return NotImplemented
 
+    def __hash__(self) -> int:
+        return hash(self.value)
+
 
 class SurfaceCodes(Enum):
     DIRT = 'D'
@@ -81,6 +93,9 @@ class SurfaceCodes(Enum):
         elif other.__class__ is str:
             return self.value == other
         return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(self.value)
 
 
 class CourseCodes(Enum):
@@ -108,6 +123,9 @@ class CourseCodes(Enum):
             return self.value == other
         return NotImplemented
 
+    def __hash__(self) -> int:
+        return hash(self.value)
+
 
 class Index(Enum):
     pass
@@ -116,6 +134,9 @@ class Index(Enum):
         if self.__class__ is other.__class__:
             return self.value == other.value
         return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(self.value)
 
     def __gt__(self, other) -> bool:
         if self.__class__ is other.__class__:
@@ -127,12 +148,12 @@ class Index(Enum):
             return self.value < other.value
         return NotImplemented
 
-    def __gte__(self, other) -> bool:
+    def __ge__(self, other) -> bool:
         if self.__class__ is other.__class__:
             return self.value >= other.value
         return NotImplemented
 
-    def __lte__(self, other) -> bool:
+    def __le__(self, other) -> bool:
         if self.__class__ is other.__class__:
             return self.value <= other.value
         return NotImplemented
