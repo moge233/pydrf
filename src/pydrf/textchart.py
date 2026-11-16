@@ -374,10 +374,7 @@ class StarterPerformanceDataIndex(Index):
 
 
 def try_get_str(row: list[str], index: Index) -> str:
-    try:
-        return row[index.value].rstrip()
-    except ValueError:
-        return ''
+    return row[index.value].rstrip()
 
 
 def try_get_int(row: list[str], index: Index) -> int:

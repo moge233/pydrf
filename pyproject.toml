@@ -14,3 +14,14 @@ license = { text = "GPL" }
 requires-python = ">=3.13"
 dependencies = [
 ]
+
+[project.optional-dependencies]
+test = ["coverage>=7.6"]
+
+[tool.coverage.run]
+branch = true
+source = ["src/pydrf"]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
