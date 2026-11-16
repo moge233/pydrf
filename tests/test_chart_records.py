@@ -25,6 +25,13 @@ HEADER = _record('H', 'USA', 'TST', '20260101', '3', 'D', 'Test')
 
 class ChartRecordTestCase(unittest.TestCase):
 
+    def test_starter_horse_key_and_name(self) -> None:
+        starter_row = ['S', 1, '000011113095TB', 'Belle Ofthe Dance'] + ['0'] * 88
+        chart = _parse([HEADER, _record('R', 1, *(['0'] * 62)), _record(*starter_row)])
+        starter = chart.races[0].starters[0]
+        self.assertEqual(starter.horse_key, '000011113095TB')
+        self.assertEqual(starter.name, 'Belle Ofthe Dance')
+
     def test_header_parsed(self) -> None:
         chart = _parse([HEADER, _record('R', 1, *(['0'] * 62))])
         self.assertEqual(chart.header.track_code, 'TST')
