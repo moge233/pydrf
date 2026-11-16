@@ -803,6 +803,8 @@ class TextChart:
     def get_winner(self, race_number: int) -> StarterPerformanceData:
         for starter in self.starters_performance_data:
             if starter.race_number == race_number and starter.original_finish == 1 and starter.dead_heat_flag == 'N':
-                winner = starter
-                break
-        return winner
+                return starter
+        raise LookupError(
+            f'no outright winner for race {race_number} '
+            '(race not on the chart, or a dead heat for win)'
+        )
