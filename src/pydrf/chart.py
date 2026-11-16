@@ -32,7 +32,7 @@ class Chart:
         races: list[Race | None] = []
         exotic_wagering_data: list[ExoticWageringData] = []
         with open(path) as chart_file:
-            header: Header | None
+            header: Header | None = None
             reader = csv.reader(chart_file.readlines())
             for line in reader:
                 if line[0] == RecordType.HEADER:
@@ -72,6 +72,8 @@ class Chart:
                     pass
                 elif line[0] == RecordType.FOOTNOTE:
                     pass
+            if header is None:
+                raise ValueError(f'{path}: chart has no header (H) record')
             return Chart(
                 header,
                 races,
