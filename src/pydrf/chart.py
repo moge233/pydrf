@@ -40,11 +40,9 @@ class Chart:
                         header = Header.create(line)
                     elif line[0] == RecordType.RACE:
                         race_data: RaceData = RaceData.create(line)
-                        if (race_data.race_number - 1) == len(races):
-                            races.append(Race(race_data, [], []))
-                        else:
+                        while len(races) < race_data.race_number - 1:
                             races.append(None)
-                            races.append(Race(race_data, [], []))
+                        races.append(Race(race_data, [], []))
                     elif line[0] == RecordType.STARTER:
                         starter_data: StarterPerformanceData = StarterPerformanceData.create(line)
                         jockey: Jockey = Jockey(
