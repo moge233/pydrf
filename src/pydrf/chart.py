@@ -62,9 +62,9 @@ class Chart:
                         if race:
                             race.add_starter(Starter(starter_data, jockey, trainer))
                     elif line[0] == RecordType.EXOTIC_WAGERING:
-                        exotic_wagering_data.append(ExoticWageringData.create(line))
                         wager_data: ExoticWageringData = ExoticWageringData.create(line)
-                        race: Race | None = races[starter_data.race_number - 1]
+                        exotic_wagering_data.append(wager_data)
+                        race: Race | None = races[wager_data.race_number - 1]
                         if race:
                             race.add_wager(wager_data)
                     elif line[0] == RecordType.ATTENDANCE:
