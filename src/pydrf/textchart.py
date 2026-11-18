@@ -369,8 +369,8 @@ class StarterPerformanceDataIndex(Index):
     INDIVIDUAL_HORSE_TIME_INDEX = 87
     SPEED_INDEX = 88
     BREEDER_NAME_INDEX = 89
-    JOCKEY_KEY_INDEX = 90
-    TRAINER_KEY_INDEX = 91
+    TRAINER_KEY_INDEX = 90
+    JOCKEY_KEY_INDEX = 91
 
 
 def try_get_str(row: list[str], index: Index) -> str:
@@ -666,12 +666,12 @@ class StarterPerformanceData:
     place_payoff: float
     show_payoff: float
     claimed_indicator: str
-    claiming_trainer_key: int
+    claiming_trainer_key: str
     claiming_trainer_type: str
     claiming_trainer_last_name: str
     claiming_trainer_first_name: str
     claiming_trainer_middle_name: str
-    claiming_owner_key: int
+    claiming_owner_key: str
     claiming_owner_type: str
     claiming_owner_last_name: str
     claiming_owner_first_name: str
@@ -685,8 +685,8 @@ class StarterPerformanceData:
     individual_horse_time: float
     speed_index: int
     breeder_name: str
-    jockey_key: int
-    trainer_key: int
+    jockey_key: str
+    trainer_key: str
 
     @staticmethod
     def create(row: list[str]) -> 'StarterPerformanceData':
@@ -755,12 +755,12 @@ class StarterPerformanceData:
             try_get_float(row, StarterPerformanceDataIndex.PLACE_PAYOFF_INDEX),
             try_get_float(row, StarterPerformanceDataIndex.SHOW_PAYOFF_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMED_INDICATOR_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.CLAIMING_TRAINER_KEY_INDEX),
+            try_get_str(row, StarterPerformanceDataIndex.CLAIMING_TRAINER_KEY_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMING_TRAINER_TYPE_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMING_TRAINER_LAST_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMING_TRAINER_FIRST_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMING_TRAINER_MIDDLE_NAME_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.CLAIMING_OWNER_KEY_INDEX),
+            try_get_str(row, StarterPerformanceDataIndex.CLAIMING_OWNER_KEY_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMING_OWNER_TYPE_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMING_OWNER_LAST_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMING_OWNER_FIRST_NAME_INDEX),
@@ -774,8 +774,8 @@ class StarterPerformanceData:
             try_get_float(row, StarterPerformanceDataIndex.INDIVIDUAL_HORSE_TIME_INDEX),
             try_get_int(row, StarterPerformanceDataIndex.SPEED_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.BREEDER_NAME_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.JOCKEY_KEY_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.TRAINER_KEY_INDEX)
+            try_get_str(row, StarterPerformanceDataIndex.JOCKEY_KEY_INDEX),
+            try_get_str(row, StarterPerformanceDataIndex.TRAINER_KEY_INDEX)
         )
 
 
