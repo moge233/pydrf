@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from pydrf.chart import Chart
+from pydrf.textchart import StarterPerformanceData
 
 
 def _record(*fields: object) -> str:
@@ -31,6 +32,24 @@ class ChartRecordTestCase(unittest.TestCase):
         starter = chart.races[0].starters[0]
         self.assertEqual(starter.horse_key, '000011113095TB')
         self.assertEqual(starter.name, 'Belle Ofthe Dance')
+
+    def test_starter_trainer_and_jockey_keys(self) -> None:
+        starter_row: list[object] = ['S', 1, '000011113095TB', 'Belle Ofthe Dance'] + ['0'] * 88
+        starter_row[26:28] = ['Saez', 'Luis']
+        starter_row[30:32] = ['LaRose', 'Kinnon']
+        starter_row[90] = '000000979715TE'
+        starter_row[91] = '000000135658JE'
+        chart = _parse([HEADER, _record('R', 1, *(['0'] * 62)), _record(*starter_row)])
+        starter = chart.races[0].starters[0]
+        self.assertEqual((starter.trainer.last_name, starter.trainer.key), ('LaRose', '000000979715TE'))
+        self.assertEqual((starter.jockey.last_name, starter.jockey.key), ('Saez', '000000135658JE'))
+
+    def test_claiming_keys_kept_as_text(self) -> None:
+        row = ['S', '1', '000011113095TB', 'Belle Ofthe Dance'] + ['0'] * 88
+        row[71], row[76] = '000000190932TE', '000000775687O6'
+        data = StarterPerformanceData.create(row)
+        self.assertEqual(data.claiming_trainer_key, '000000190932TE')
+        self.assertEqual(data.claiming_owner_key, '000000775687O6')
 
     def test_header_parsed(self) -> None:
         chart = _parse([HEADER, _record('R', 1, *(['0'] * 62))])

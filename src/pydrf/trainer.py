@@ -2,11 +2,11 @@
 
 
 class Trainer:
-    def __init__(self, last_name: str, first_name: str, middle_name: str, key: int):
+    def __init__(self, last_name: str, first_name: str, middle_name: str, key: str):
         self.last_name: str = last_name
         self.first_name: str = first_name
         self.middle_name: str = middle_name
-        self.key: int = key
+        self.key: str = key
 
     def __str__(self):
         ret = ''
