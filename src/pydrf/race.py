@@ -1,7 +1,7 @@
 #! python3
 
 
-from .textchart import ExoticWageringData, RaceData
+from .textchart import CommentsAndRaceOdditiesData, ExoticWageringData, FootNoteData, RaceData
 from .starter import Starter
 
 
@@ -54,6 +54,8 @@ class Race:
         self.official_indicator: str = data.official_indicator
         self.starters: list[Starter] = starters
         self.wagering: list[ExoticWageringData] = wagering
+        self.comments: list[CommentsAndRaceOdditiesData] = []
+        self.footnotes: list[FootNoteData] = []
 
     def __str__(self):
         ret = ''
@@ -72,3 +74,13 @@ class Race:
 
     def add_wager(self, wager: ExoticWageringData) -> None:
         self.wagering.append(wager)
+
+    def add_comment(self, comment: CommentsAndRaceOdditiesData) -> None:
+        self.comments.append(comment)
+
+    def add_footnote(self, footnote: FootNoteData) -> None:
+        self.footnotes.append(footnote)
+
+    def get_footnote(self) -> str:
+        lines = sorted(self.footnotes, key=lambda footnote: footnote.sequence_number)
+        return ' '.join(footnote.text for footnote in lines)

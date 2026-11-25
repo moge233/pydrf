@@ -262,13 +262,8 @@ class AttendanceAndHandleDataIndex(Index):
 class CommentsAndRaceOdditiesDataIndex(Index):
     RECORD_TYPE_INDEX = 0
     RACE_NUMBER_INDEX = 1
-    RESULT_COUNTRY_CODE_INDEX = 2
-    TRACK_CODE_INDEX = 3
-    RACE_DATE_INDEX = 4
-    RESULT_RACE_NUMBER_INDEX = 5
-    RESULT_DAY_EVENING_FLAG_INDEX = 6
-    COMMENT_TYPE_INDEX = 7
-    COMMENT_TEXT_INDEX = 8
+    COMMENT_TYPE_INDEX = 2
+    COMMENT_TEXT_INDEX = 3
 
 
 class FootNotesIndex(Index):
@@ -667,6 +662,40 @@ class AttendanceAndHandleData:
             try_get_str(row, AttendanceAndHandleDataIndex.LOCATION_INDEX),
             try_get_int(row, AttendanceAndHandleDataIndex.ATTENDANCE_INDEX, strict),
             try_get_float(row, AttendanceAndHandleDataIndex.HANDLE_INDEX, strict)
+        )
+
+
+@dataclass
+class CommentsAndRaceOdditiesData:
+    race_number: int
+    comment_type: str
+    comment_text: str
+
+    @staticmethod
+    def create(row: list[str], strict: bool = False) -> 'CommentsAndRaceOdditiesData':
+        """Build a CommentsAndRaceOdditiesData from a CSV row. With ``strict=True``, blank
+        numeric fields are None and unreadable ones raise FieldError."""
+        return CommentsAndRaceOdditiesData(
+            try_get_int(row, CommentsAndRaceOdditiesDataIndex.RACE_NUMBER_INDEX, strict),
+            try_get_str(row, CommentsAndRaceOdditiesDataIndex.COMMENT_TYPE_INDEX),
+            try_get_str(row, CommentsAndRaceOdditiesDataIndex.COMMENT_TEXT_INDEX)
+        )
+
+
+@dataclass
+class FootNoteData:
+    race_number: int
+    sequence_number: int
+    text: str
+
+    @staticmethod
+    def create(row: list[str], strict: bool = False) -> 'FootNoteData':
+        """Build a FootNoteData from a CSV row. With ``strict=True``, blank
+        numeric fields are None and unreadable ones raise FieldError."""
+        return FootNoteData(
+            try_get_int(row, FootNotesIndex.RACE_NUMBER_INDEX, strict),
+            try_get_int(row, FootNotesIndex.FOOT_NOTE_SEQUENCE_NUMBER_INDEX, strict),
+            try_get_str(row, FootNotesIndex.FOOT_NOTE_TEXT_INDEX)
         )
 
 

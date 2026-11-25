@@ -3,17 +3,39 @@
 
 import csv
 
-from .textchart import ExoticWageringData, Header, RaceData, RecordType, StarterPerformanceData
+from .textchart import (
+    AttendanceAndHandleData,
+    CommentsAndRaceOdditiesData,
+    ExoticWageringData,
+    FootNoteData,
+    Header,
+    RaceData,
+    RecordType,
+    StarterPerformanceData,
+)
 from .jockey import Jockey
 from .race import Race
 from .starter import Starter
 from .trainer import Trainer
 
 
+def _race_at(races: list[Race | None], race_number: int | None) -> Race | None:
+    """The race with this number, or None if the card has no such race."""
+    if race_number is None or not 1 <= race_number <= len(races):
+        return None
+    return races[race_number - 1]
+
+
 class Chart:
-    def __init__(self, header: Header, races: list[Race | None]):
+    def __init__(
+        self,
+        header: Header,
+        races: list[Race | None],
+        attendance: list[AttendanceAndHandleData] | None = None
+    ):
         self.header: Header = header
         self.races: list[Race | None] = races
+        self.attendance: list[AttendanceAndHandleData] = attendance if attendance is not None else []
 
     def __str__(self):
         ret = ''
@@ -31,6 +53,7 @@ class Chart:
     def parse_chart(path: str) -> 'Chart':
         races: list[Race | None] = []
         exotic_wagering_data: list[ExoticWageringData] = []
+        attendance: list[AttendanceAndHandleData] = []
         with open(path) as chart_file:
             header: Header | None = None
             reader = csv.reader(chart_file.readlines())
@@ -67,14 +90,21 @@ class Chart:
                     if race:
                         race.add_wager(wager_data)
                 elif line[0] == RecordType.ATTENDANCE:
-                    pass
+                    attendance.append(AttendanceAndHandleData.create(line))
                 elif line[0] == RecordType.COMMENT:
-                    pass
+                    comment_data: CommentsAndRaceOdditiesData = CommentsAndRaceOdditiesData.create(line)
+                    race = _race_at(races, comment_data.race_number)
+                    if race:
+                        race.add_comment(comment_data)
                 elif line[0] == RecordType.FOOTNOTE:
-                    pass
+                    footnote_data: FootNoteData = FootNoteData.create(line)
+                    race = _race_at(races, footnote_data.race_number)
+                    if race:
+                        race.add_footnote(footnote_data)
             if header is None:
                 raise ValueError(f'{path}: chart has no header (H) record')
             return Chart(
                 header,
                 races,
+                attendance,
             )
