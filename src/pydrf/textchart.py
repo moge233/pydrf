@@ -377,26 +377,88 @@ def try_get_str(row: list[str], index: Index) -> str:
     return row[index.value].rstrip()
 
 
-def try_get_int(row: list[str], index: Index) -> int:
+class FieldError(ValueError):
+    """A field that is missing from its row or can't be read as its type.
+
+    Raised only by strict reads (``create(row, strict=True)``).
+
+    Attributes:
+        index: The field's index member.
+        value: The field's text, or ``None`` when the row is too short to hold it.
+        kind: The type the field should hold.
+    """
+
+    def __init__(self, index: Index, value: str | None, kind: str) -> None:
+        self.index = index
+        self.value = value
+        self.kind = kind
+        name = index.name.removesuffix('_INDEX')
+        if value is None:
+            detail = 'missing (the row is too short)'
+        else:
+            detail = f'{value!r} is not a valid {kind}'
+        super().__init__(f'field {index.value + 1} ({name}): {detail}')
+
+
+def _strict_text(row: list[str], index: Index, kind: str) -> str | None:
+    """The field's text, or None when it is blank. Raises FieldError when the
+    row is too short to hold the field."""
+    if index.value >= len(row):
+        raise FieldError(index, None, kind)
+    text = row[index.value].strip()
+    return text or None
+
+
+def try_get_int(row: list[str], index: Index, strict: bool = False) -> int | None:
+    """Read an integer field.
+
+    By default a blank or unreadable value reads as 0. With ``strict=True`` a
+    blank value reads as None and an unreadable one raises FieldError.
+    """
+    if strict:
+        text = _strict_text(row, index, 'int')
+        if text is None:
+            return None
+        try:
+            return int(text)
+        except ValueError:
+            raise FieldError(index, row[index.value], 'int') from None
     try:
         return int(row[index.value].rstrip())
     except ValueError:
         return int(0)
 
 
-def try_get_float(row: list[str], index: Index) -> float:
+def try_get_float(row: list[str], index: Index, strict: bool = False) -> float | None:
+    """Read a decimal field.
+
+    By default a blank or unreadable value reads as NaN. With ``strict=True`` a
+    blank value reads as None and an unreadable one raises FieldError.
+    """
+    if strict:
+        text = _strict_text(row, index, 'float')
+        if text is None:
+            return None
+        try:
+            return float(text)
+        except ValueError:
+            raise FieldError(index, row[index.value], 'float') from None
     try:
         return float(row[index.value].rstrip())
     except ValueError:
         return float('nan')
 
 
-def final_time_to_seconds(final_time: float) -> float:
+def final_time_to_seconds(final_time: float | None) -> float | None:
+    if final_time is None:
+        return None
     minutes: float = trunc(final_time / 100)
     return round(minutes * 60 + final_time - minutes * 100, 2)
 
 
-def fraction_to_seconds(fraction: float) -> float:
+def fraction_to_seconds(fraction: float | None) -> float | None:
+    if fraction is None:
+        return None
     minutes: float = trunc(fraction / 10000)
     return round(minutes * 60 + fraction / 100 - minutes * 100, 2)
 
@@ -411,12 +473,14 @@ class Header:
     sending_track: str
 
     @staticmethod
-    def create(row: list[str]) -> 'Header':
+    def create(row: list[str], strict: bool = False) -> 'Header':
+        """Build a Header from a CSV row. With ``strict=True``, blank
+        numeric fields are None and unreadable ones raise FieldError."""
         return Header(
             try_get_str(row, HeaderIndex.COUNTRY_CODE_INDEX),
             try_get_str(row, HeaderIndex.TRACK_CODE_INDEX),
             try_get_str(row, HeaderIndex.RACE_DATE_INDEX),
-            try_get_int(row, HeaderIndex.NUMBER_OF_RACES_INDEX),
+            try_get_int(row, HeaderIndex.NUMBER_OF_RACES_INDEX, strict),
             try_get_str(row, HeaderIndex.DAY_EVENING_FLAG_INDEX),
             try_get_str(row, HeaderIndex.SENDING_TRACK_INDEX)
         )
@@ -489,41 +553,43 @@ class RaceData:
     official_indicator: str
 
     @staticmethod
-    def create(row: list[str]) -> 'RaceData':
+    def create(row: list[str], strict: bool = False) -> 'RaceData':
+        """Build a RaceData from a CSV row. With ``strict=True``, blank
+        numeric fields are None and unreadable ones raise FieldError."""
         return RaceData(
-            try_get_int(row, RaceDataIndex.RACE_NUMBER_INDEX),
+            try_get_int(row, RaceDataIndex.RACE_NUMBER_INDEX, strict),
             try_get_str(row, RaceDataIndex.BREED_INDICATOR_INDEX),
             try_get_str(row, RaceDataIndex.RACE_TYPE_INDEX),
             try_get_str(row, RaceDataIndex.RESTRICTIONS_INDEX),
             try_get_str(row, RaceDataIndex.SEX_RESTRICTION_INDEX),
             try_get_str(row, RaceDataIndex.AGE_RESTRICTION_INDEX),
             try_get_str(row, RaceDataIndex.DIVISION_INDEX),
-            try_get_int(row, RaceDataIndex.PURSE_USA_INDEX),
-            try_get_int(row, RaceDataIndex.REVERTS_MONEY_INDEX),
-            try_get_int(row, RaceDataIndex.AVAILABLE_MONEY_INDEX),
-            try_get_int(row, RaceDataIndex.PAID_TO_OTHERS_INDEX),
+            try_get_int(row, RaceDataIndex.PURSE_USA_INDEX, strict),
+            try_get_int(row, RaceDataIndex.REVERTS_MONEY_INDEX, strict),
+            try_get_int(row, RaceDataIndex.AVAILABLE_MONEY_INDEX, strict),
+            try_get_int(row, RaceDataIndex.PAID_TO_OTHERS_INDEX, strict),
             try_get_str(row, RaceDataIndex.ADDED_GUARANTEED_FLAG_INDEX),
-            try_get_int(row, RaceDataIndex.ADDED_MONEY_INDEX),
+            try_get_int(row, RaceDataIndex.ADDED_MONEY_INDEX, strict),
             try_get_str(row, RaceDataIndex.INCLUDES1_TYPE_INDEX),
-            try_get_int(row, RaceDataIndex.INCLUDES1_MONEY_USA_INDEX),
+            try_get_int(row, RaceDataIndex.INCLUDES1_MONEY_USA_INDEX, strict),
             try_get_str(row, RaceDataIndex.INCLUDES2_TYPE_INDEX),
-            try_get_int(row, RaceDataIndex.INCLUDES2_MONEY_USA_INDEX),
+            try_get_int(row, RaceDataIndex.INCLUDES2_MONEY_USA_INDEX, strict),
             try_get_str(row, RaceDataIndex.INCLUDES3_TYPE_INDEX),
-            try_get_int(row, RaceDataIndex.INCLUDES3_MONEY_USA_INDEX),
+            try_get_int(row, RaceDataIndex.INCLUDES3_MONEY_USA_INDEX, strict),
             try_get_str(row, RaceDataIndex.PLUS1_TYPE_INDEX),
-            try_get_int(row, RaceDataIndex.PLUS1_MONEY_USA_INDEX),
+            try_get_int(row, RaceDataIndex.PLUS1_MONEY_USA_INDEX, strict),
             try_get_str(row, RaceDataIndex.PLUS2_TYPE_INDEX),
-            try_get_int(row, RaceDataIndex.PLUS2_MONEY_USA_INDEX),
+            try_get_int(row, RaceDataIndex.PLUS2_MONEY_USA_INDEX, strict),
             try_get_str(row, RaceDataIndex.PLUS3_TYPE_INDEX),
-            try_get_int(row, RaceDataIndex.PLUS3_MONEY_USA_INDEX),
-            try_get_int(row, RaceDataIndex.MINIMUM_CLAIMING_PRICE_USA_INDEX),
-            try_get_int(row, RaceDataIndex.MAXIMUM_CLAIMING_PRICE_USA_INDEX),
+            try_get_int(row, RaceDataIndex.PLUS3_MONEY_USA_INDEX, strict),
+            try_get_int(row, RaceDataIndex.MINIMUM_CLAIMING_PRICE_USA_INDEX, strict),
+            try_get_int(row, RaceDataIndex.MAXIMUM_CLAIMING_PRICE_USA_INDEX, strict),
             try_get_str(row, RaceDataIndex.ABOUT_DISTANCE_INDICATOR_INDEX),
-            try_get_int(row, RaceDataIndex.DISTANCE_INDEX),
+            try_get_int(row, RaceDataIndex.DISTANCE_INDEX, strict),
             try_get_str(row, RaceDataIndex.DISTANCE_UNIT_INDEX),
             try_get_str(row, RaceDataIndex.SURFACE_INDEX),
             try_get_str(row, RaceDataIndex.COURSE_TYPE_INDEX),
-            try_get_int(row, RaceDataIndex.NUMBER_OF_HORSES_INDEX),
+            try_get_int(row, RaceDataIndex.NUMBER_OF_HORSES_INDEX, strict),
             try_get_str(row, RaceDataIndex.RACE_GRADE_INDEX),
             try_get_str(row, RaceDataIndex.RACE_NAME_INDEX),
             try_get_str(row, RaceDataIndex.ABBREVIATED_RACE_NAME_INDEX),
@@ -534,23 +600,23 @@ class RaceData:
             try_get_str(row, RaceDataIndex.RACE_CLASS_CODES_INDEX),
             try_get_str(row, RaceDataIndex.TRACK_CONDITION_INDEX),
             try_get_str(row, RaceDataIndex.OFF_TURF_INDICATOR_INDEX),
-            try_get_int(row, RaceDataIndex.TRACK_VARIANT_INDEX),
-            try_get_int(row, RaceDataIndex.DRF_SPEED_NUMBER_INDEX),
-            try_get_int(row, RaceDataIndex.WIND_SPEED_INDEX),
+            try_get_int(row, RaceDataIndex.TRACK_VARIANT_INDEX, strict),
+            try_get_int(row, RaceDataIndex.DRF_SPEED_NUMBER_INDEX, strict),
+            try_get_int(row, RaceDataIndex.WIND_SPEED_INDEX, strict),
             try_get_str(row, RaceDataIndex.WIND_DIRECTION_INDEX),
-            try_get_int(row, RaceDataIndex.RACE_TEMPERATURE_INDEX),
-            final_time_to_seconds(try_get_float(row, RaceDataIndex.FINAL_TIME_INDEX)),
-            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION1_INDEX)),
-            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION2_INDEX)),
-            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION3_INDEX)),
-            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION4_INDEX)),
-            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION5_INDEX)),
-            try_get_float(row, RaceDataIndex.INDIVIDUAL_TIME_INDEX),
+            try_get_int(row, RaceDataIndex.RACE_TEMPERATURE_INDEX, strict),
+            final_time_to_seconds(try_get_float(row, RaceDataIndex.FINAL_TIME_INDEX, strict)),
+            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION1_INDEX, strict)),
+            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION2_INDEX, strict)),
+            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION3_INDEX, strict)),
+            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION4_INDEX, strict)),
+            fraction_to_seconds(try_get_float(row, RaceDataIndex.FRACTION5_INDEX, strict)),
+            try_get_float(row, RaceDataIndex.INDIVIDUAL_TIME_INDEX, strict),
             try_get_str(row, RaceDataIndex.TIMER_TYPE_INDEX),
-            try_get_int(row, RaceDataIndex.WPS_POOL_INDEX),
+            try_get_int(row, RaceDataIndex.WPS_POOL_INDEX, strict),
             try_get_str(row, RaceDataIndex.START_DESCRIPTION_INDEX),
             try_get_str(row, RaceDataIndex.WEATHER_INDEX),
-            try_get_int(row, RaceDataIndex.TEMPORARY_RAIL_DISTANCE_INDEX),
+            try_get_int(row, RaceDataIndex.TEMPORARY_RAIL_DISTANCE_INDEX, strict),
             try_get_str(row, RaceDataIndex.OFF_TURF_DISTANCE_CHANGE_FLAG_INDEX),
             try_get_str(row, RaceDataIndex.OFFICIAL_INDICATOR_INDEX)
         )
@@ -568,16 +634,18 @@ class ExoticWageringData:
     carryover: float
 
     @staticmethod
-    def create(row: list[str]) -> 'ExoticWageringData':
+    def create(row: list[str], strict: bool = False) -> 'ExoticWageringData':
+        """Build a ExoticWageringData from a CSV row. With ``strict=True``, blank
+        numeric fields are None and unreadable ones raise FieldError."""
         return ExoticWageringData(
-            try_get_int(row, ExoticWageringDataIndex.RACE_NUMBER_INDEX),
+            try_get_int(row, ExoticWageringDataIndex.RACE_NUMBER_INDEX, strict),
             try_get_str(row, ExoticWageringDataIndex.WAGER_TYPE_INDEX),
-            try_get_int(row, ExoticWageringDataIndex.WAGERING_INDEX),
+            try_get_int(row, ExoticWageringDataIndex.WAGERING_INDEX, strict),
             try_get_str(row, ExoticWageringDataIndex.WINNING_INDEX),
-            try_get_int(row, ExoticWageringDataIndex.MINIMUM_INDEX),
-            try_get_float(row, ExoticWageringDataIndex.POOL_TOTAL_INDEX),
-            try_get_float(row, ExoticWageringDataIndex.PAYOFF_AMOUNT_INDEX),
-            try_get_float(row, ExoticWageringDataIndex.CARRYOVER_INDEX)
+            try_get_int(row, ExoticWageringDataIndex.MINIMUM_INDEX, strict),
+            try_get_float(row, ExoticWageringDataIndex.POOL_TOTAL_INDEX, strict),
+            try_get_float(row, ExoticWageringDataIndex.PAYOFF_AMOUNT_INDEX, strict),
+            try_get_float(row, ExoticWageringDataIndex.CARRYOVER_INDEX, strict)
         )
 
 
@@ -590,13 +658,15 @@ class AttendanceAndHandleData:
     handle: float
 
     @staticmethod
-    def create(row: list[str]) -> 'AttendanceAndHandleData':
+    def create(row: list[str], strict: bool = False) -> 'AttendanceAndHandleData':
+        """Build a AttendanceAndHandleData from a CSV row. With ``strict=True``, blank
+        numeric fields are None and unreadable ones raise FieldError."""
         return AttendanceAndHandleData(
-            try_get_int(row, AttendanceAndHandleDataIndex.RACE_NUMBER_INDEX),
+            try_get_int(row, AttendanceAndHandleDataIndex.RACE_NUMBER_INDEX, strict),
             try_get_str(row, AttendanceAndHandleDataIndex.LOCATION_TYPE_INDEX),
             try_get_str(row, AttendanceAndHandleDataIndex.LOCATION_INDEX),
-            try_get_int(row, AttendanceAndHandleDataIndex.ATTENDANCE_INDEX),
-            try_get_float(row, AttendanceAndHandleDataIndex.HANDLE_INDEX)
+            try_get_int(row, AttendanceAndHandleDataIndex.ATTENDANCE_INDEX, strict),
+            try_get_float(row, AttendanceAndHandleDataIndex.HANDLE_INDEX, strict)
         )
 
 
@@ -689,9 +759,11 @@ class StarterPerformanceData:
     trainer_key: str
 
     @staticmethod
-    def create(row: list[str]) -> 'StarterPerformanceData':
+    def create(row: list[str], strict: bool = False) -> 'StarterPerformanceData':
+        """Build a StarterPerformanceData from a CSV row. With ``strict=True``, blank
+        numeric fields are None and unreadable ones raise FieldError."""
         return StarterPerformanceData(
-            try_get_int(row, StarterPerformanceDataIndex.RACE_NUMBER_INDEX),
+            try_get_int(row, StarterPerformanceDataIndex.RACE_NUMBER_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.HORSE_KEY_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.HORSE_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.HORSE_FOALING_DATE_INDEX),
@@ -705,11 +777,11 @@ class StarterPerformanceData:
             try_get_str(row, StarterPerformanceDataIndex.SIRES_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.SIRES_YEAR_OF_BIRTH_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.SIRES_BREED_TYPE_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.WEIGHT_CARRIED_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.HORSE_WEIGHT_INDEX),
+            try_get_int(row, StarterPerformanceDataIndex.WEIGHT_CARRIED_INDEX, strict),
+            try_get_int(row, StarterPerformanceDataIndex.HORSE_WEIGHT_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.MEDICATIONS_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.EQUIPMENT_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.EARNINGS_USA_INDEX),
+            try_get_int(row, StarterPerformanceDataIndex.EARNINGS_USA_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.JOCKEYS_LAST_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.JOCKEYS_FIRST_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.JOCKEYS_MIDDLE_NAME_INDEX),
@@ -720,40 +792,40 @@ class StarterPerformanceData:
             try_get_str(row, StarterPerformanceDataIndex.OWNERS_LAST_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.OWNERS_FIRST_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.OWNERS_MIDDLE_NAME_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.ODDS_INDEX),
+            try_get_float(row, StarterPerformanceDataIndex.ODDS_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.NONBETTING_INDICATOR_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.COUPLED_FLAG_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.COUPLED_FINISH_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.FAVORITE_INDICATOR_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.POST_POSITION_INDEX),
+            try_get_int(row, StarterPerformanceDataIndex.POST_POSITION_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.PROGRAM_NUMBER_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_START_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_POC1_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_POC2_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_POC3_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_POC4_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_POC5_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.ORIGINAL_FINISH_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.OFFICIAL_FINISH_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_POC1_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_POC2_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_POC3_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_POC4_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_POC5_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_FINISH_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_POC1_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_POC2_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_POC3_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_POC4_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_POC5_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_FINISH_INDEX),
+            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_START_INDEX, strict),
+            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_POC1_INDEX, strict),
+            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_POC2_INDEX, strict),
+            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_POC3_INDEX, strict),
+            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_POC4_INDEX, strict),
+            try_get_int(row, StarterPerformanceDataIndex.POSITION_AT_POC5_INDEX, strict),
+            try_get_int(row, StarterPerformanceDataIndex.ORIGINAL_FINISH_INDEX, strict),
+            try_get_int(row, StarterPerformanceDataIndex.OFFICIAL_FINISH_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_POC1_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_POC2_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_POC3_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_POC4_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_POC5_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_AHEAD_AT_FINISH_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_POC1_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_POC2_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_POC3_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_POC4_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_POC5_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.LENGTH_BEHIND_AT_FINISH_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.DEAD_HEAT_FLAG_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.INDIVIDUAL_HORSE_CLAIMING_PRICE_INDEX),
+            try_get_float(row, StarterPerformanceDataIndex.INDIVIDUAL_HORSE_CLAIMING_PRICE_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.SHORT_COMMENTS_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.LONG_COMMENTS_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.WIN_PAYOFF_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.PLACE_PAYOFF_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.SHOW_PAYOFF_INDEX),
+            try_get_float(row, StarterPerformanceDataIndex.WIN_PAYOFF_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.PLACE_PAYOFF_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.SHOW_PAYOFF_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMED_INDICATOR_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMING_TRAINER_KEY_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CLAIMING_TRAINER_TYPE_INDEX),
@@ -767,12 +839,12 @@ class StarterPerformanceData:
             try_get_str(row, StarterPerformanceDataIndex.CLAIMING_OWNER_MIDDLE_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.SCRATCH_REASON_CODE_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.DISQUALIFICATION_INDICATOR_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.DISQUALIFICATION_PLACING_INDEX),
+            try_get_int(row, StarterPerformanceDataIndex.DISQUALIFICATION_PLACING_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.TROUBLE_INDICATOR_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.CORRECTED_WEIGHT_INDICATOR_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.OVER_WEIGHT_INDEX),
-            try_get_float(row, StarterPerformanceDataIndex.INDIVIDUAL_HORSE_TIME_INDEX),
-            try_get_int(row, StarterPerformanceDataIndex.SPEED_INDEX),
+            try_get_int(row, StarterPerformanceDataIndex.OVER_WEIGHT_INDEX, strict),
+            try_get_float(row, StarterPerformanceDataIndex.INDIVIDUAL_HORSE_TIME_INDEX, strict),
+            try_get_int(row, StarterPerformanceDataIndex.SPEED_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.BREEDER_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.JOCKEY_KEY_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.TRAINER_KEY_INDEX)
