@@ -786,6 +786,8 @@ class StarterPerformanceData:
     breeder_name: str
     jockey_key: str
     trainer_key: str
+    broodmares_sires_name: str
+    broodmares_sires_year_of_birth: str
 
     @staticmethod
     def create(row: list[str], strict: bool = False) -> 'StarterPerformanceData':
@@ -876,7 +878,14 @@ class StarterPerformanceData:
             try_get_int(row, StarterPerformanceDataIndex.SPEED_INDEX, strict),
             try_get_str(row, StarterPerformanceDataIndex.BREEDER_NAME_INDEX),
             try_get_str(row, StarterPerformanceDataIndex.JOCKEY_KEY_INDEX),
-            try_get_str(row, StarterPerformanceDataIndex.TRAINER_KEY_INDEX)
+            try_get_str(row, StarterPerformanceDataIndex.TRAINER_KEY_INDEX),
+            try_get_str(
+                row, StarterPerformanceDataIndex.BROODMARES_SIRES_NAME_INDEX
+            ),
+            try_get_str(
+                row,
+                StarterPerformanceDataIndex.BROODMARES_SIRES_YEAR_OF_BIRTH_INDEX,
+            ),
         )
 
 

@@ -17,6 +17,10 @@ class Starter:
         self.dams_year_of_birth: str = data.dams_year_of_birth
         self.sires_name: str = data.sires_name
         self.sires_year_of_birth: str = data.sires_year_of_birth
+        self.broodmares_sires_name: str = data.broodmares_sires_name
+        self.broodmares_sires_year_of_birth: str = (
+            data.broodmares_sires_year_of_birth
+        )
         self.weight_carried: int = data.weight_carried
         self.weight: int = data.horse_weight
         self.medications: str = data.medications
